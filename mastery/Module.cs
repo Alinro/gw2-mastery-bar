@@ -18,6 +18,7 @@ namespace mastery
 
         private static readonly Logger Logger = Logger.GetLogger<Module>();
 
+        private StandardWindow windowContainer;
         private Image imageFishing;
         private Image imageSkiff;
         private Image imageWaypoint;
@@ -62,13 +63,21 @@ namespace mastery
 
         private void DrawUi()
         {
-            imageSkiff = new Image(AsyncTexture2D.FromAssetId(SKIFF_ASSET_ID)) { Location = new Point(0, 0), Parent = GameService.Graphics.SpriteScreen };
+            windowContainer = new StandardWindow(
+                AsyncTexture2D.FromAssetId(43309).Texture,
+                new Rectangle(0, 0, 64 * 3, 64),
+                new Rectangle(0, 0, 64 * 3, 64)
+            ) { Title = "", CanResize = false, CanClose = false, Parent = GameService.Graphics.SpriteScreen, SavesPosition = true };
+
+            windowContainer.Show();
+
+            imageSkiff = new Image(AsyncTexture2D.FromAssetId(SKIFF_ASSET_ID)) { Location = new Point(0, 0), Parent = windowContainer };
             imageSkiff.Click += ImageSkiffOnClick;
 
-            imageWaypoint = new Image(AsyncTexture2D.FromAssetId(WAYPOINT_ASSET_ID)) { Location = new Point(64, 0), Parent = GameService.Graphics.SpriteScreen };
+            imageWaypoint = new Image(AsyncTexture2D.FromAssetId(WAYPOINT_ASSET_ID)) { Location = new Point(64, 0), Parent = windowContainer };
             imageWaypoint.Click += ImageWaypointOnClick;
 
-            imageFishing = new Image(AsyncTexture2D.FromAssetId(FISHING_ASSET_ID)) { Location = new Point(128, 0), Parent = GameService.Graphics.SpriteScreen };
+            imageFishing = new Image(AsyncTexture2D.FromAssetId(FISHING_ASSET_ID)) { Location = new Point(128, 0), Parent = windowContainer };
             imageFishing.Click += ImageFishingOnClick;
         }
 
@@ -110,6 +119,7 @@ namespace mastery
             imageSkiff?.Dispose();
             imageWaypoint?.Dispose();
             imageFishing?.Dispose();
+            windowContainer?.Dispose();
             // Unload here
 
             // All static members must be manually unset
