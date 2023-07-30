@@ -6,6 +6,7 @@ using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
@@ -28,6 +29,8 @@ namespace mastery
         private const int SKIFF_ASSET_ID = 2593817;
         private const int WAYPOINT_ASSET_ID = 2595066;
 
+        private SettingEntry<KeyBinding> settingShowWindowContainerKeybind;
+
         #region Service Managers
         internal SettingsManager SettingsManager => this.ModuleParameters.SettingsManager;
         internal ContentsManager ContentsManager => this.ModuleParameters.ContentsManager;
@@ -40,7 +43,14 @@ namespace mastery
 
         protected override void DefineSettings(SettingCollection settings)
         {
+            settingShowWindowContainerKeybind = settings.DefineSetting("Mastery buttons keybind", new KeyBinding(Keys.None), () => "Mastery buttons keybind", () => "When the keybind is pressed, the mastery buttons will be shown. If this is unset, the buttons will be always shown");
+            settingShowWindowContainerKeybind.Value.Enabled = true;
+            settingShowWindowContainerKeybind.Value.Activated += ShowWindowContainerKeybindOnActivated;
+        }
 
+        private void ShowWindowContainerKeybindOnActivated(object sender, EventArgs e)
+        {
+            windowContainer.Show();
         }
 
         protected override void Initialize()
@@ -67,9 +77,8 @@ namespace mastery
                 AsyncTexture2D.FromAssetId(43309).Texture,
                 new Rectangle(0, 0, 64 * 3, 64),
                 new Rectangle(0, 0, 64 * 3, 64)
-            ) { Title = "", CanResize = false, CanClose = false, Parent = GameService.Graphics.SpriteScreen, SavesPosition = true };
-
-            windowContainer.Show();
+            )
+            { Title = "", CanResize = false, CanClose = false, Parent = GameService.Graphics.SpriteScreen, SavesPosition = true };
 
             imageSkiff = new Image(AsyncTexture2D.FromAssetId(SKIFF_ASSET_ID)) { Location = new Point(0, 0), Parent = windowContainer };
             imageSkiff.Click += ImageSkiffOnClick;
@@ -110,7 +119,13 @@ namespace mastery
 
         protected override void Update(GameTime gameTime)
         {
-
+            if (windowContainer.Visible && !settingShowWindowContainerKeybind.Value.IsTriggering && settingShowWindowContainerKeybind.Value.PrimaryKey != Keys.None)
+            {
+                windowContainer.Hide();
+            } else if(!windowContainer.Visible && settingShowWindowContainerKeybind.Value.PrimaryKey == Keys.None)
+            {
+                windowContainer.Show();
+            }
         }
 
         /// <inheritdoc />
