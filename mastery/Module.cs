@@ -1,6 +1,7 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Content;
 using Blish_HUD.Controls;
+using Blish_HUD.Input;
 using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
@@ -62,8 +63,40 @@ namespace mastery
         private void DrawUi()
         {
             imageSkiff = new Image(AsyncTexture2D.FromAssetId(SKIFF_ASSET_ID)) { Location = new Point(0, 0), Parent = GameService.Graphics.SpriteScreen };
+            imageSkiff.Click += ImageSkiffOnClick;
+
             imageWaypoint = new Image(AsyncTexture2D.FromAssetId(WAYPOINT_ASSET_ID)) { Location = new Point(64, 0), Parent = GameService.Graphics.SpriteScreen };
+            imageWaypoint.Click += ImageWaypointOnClick;
+
             imageFishing = new Image(AsyncTexture2D.FromAssetId(FISHING_ASSET_ID)) { Location = new Point(128, 0), Parent = GameService.Graphics.SpriteScreen };
+            imageFishing.Click += ImageFishingOnClick;
+        }
+
+        private async void ImageSkiffOnClick(object sender, MouseEventArgs e)
+        {
+            Blish_HUD.Controls.Intern.Keyboard.Press(Blish_HUD.Controls.Extern.VirtualKeyShort.CONTROL);
+            Blish_HUD.Controls.Intern.Keyboard.Press(Blish_HUD.Controls.Extern.VirtualKeyShort.F11);
+            await Task.Delay(50);
+            Blish_HUD.Controls.Intern.Keyboard.Release(Blish_HUD.Controls.Extern.VirtualKeyShort.CONTROL);
+            Blish_HUD.Controls.Intern.Keyboard.Release(Blish_HUD.Controls.Extern.VirtualKeyShort.F11);
+        }
+
+        private async void ImageWaypointOnClick(object sender, MouseEventArgs e)
+        {
+            Blish_HUD.Controls.Intern.Keyboard.Press(Blish_HUD.Controls.Extern.VirtualKeyShort.CONTROL);
+            Blish_HUD.Controls.Intern.Keyboard.Press(Blish_HUD.Controls.Extern.VirtualKeyShort.F9);
+            await Task.Delay(50);
+            Blish_HUD.Controls.Intern.Keyboard.Release(Blish_HUD.Controls.Extern.VirtualKeyShort.CONTROL);
+            Blish_HUD.Controls.Intern.Keyboard.Release(Blish_HUD.Controls.Extern.VirtualKeyShort.F9);
+        }
+
+        private async void ImageFishingOnClick(object sender, MouseEventArgs e)
+        {
+            Blish_HUD.Controls.Intern.Keyboard.Press(Blish_HUD.Controls.Extern.VirtualKeyShort.CONTROL);
+            Blish_HUD.Controls.Intern.Keyboard.Press(Blish_HUD.Controls.Extern.VirtualKeyShort.F10);
+            await Task.Delay(50);
+            Blish_HUD.Controls.Intern.Keyboard.Release(Blish_HUD.Controls.Extern.VirtualKeyShort.CONTROL);
+            Blish_HUD.Controls.Intern.Keyboard.Release(Blish_HUD.Controls.Extern.VirtualKeyShort.F10);
         }
 
         protected override void Update(GameTime gameTime)
