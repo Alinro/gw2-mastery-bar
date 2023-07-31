@@ -1,6 +1,7 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Content;
 using Blish_HUD.Controls;
+using Blish_HUD.Controls.Extern;
 using Blish_HUD.Input;
 using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
@@ -19,17 +20,22 @@ namespace mastery
 
         private static readonly Logger Logger = Logger.GetLogger<Module>();
 
+        // controls
         private StandardWindow windowContainer;
         private Image imageFishing;
         private Image imageSkiff;
         private Image imageWaypoint;
 
-        // from https://search.gw2dat.com/
+        // asset ids from https://search.gw2dat.com/
         private const int FISHING_ASSET_ID = 2594729;
         private const int SKIFF_ASSET_ID = 2593817;
         private const int WAYPOINT_ASSET_ID = 2595066;
 
+        // settings
         private SettingEntry<KeyBinding> settingShowWindowContainerKeybind;
+        private SettingEntry<KeyBinding> settingFishingKeybind;
+        private SettingEntry<KeyBinding> settingSkiffKeybind;
+        private SettingEntry<KeyBinding> settingWaypointKeybind;
 
         #region Service Managers
         internal SettingsManager SettingsManager => this.ModuleParameters.SettingsManager;
@@ -46,10 +52,20 @@ namespace mastery
             settingShowWindowContainerKeybind = settings.DefineSetting("Mastery buttons keybind", new KeyBinding(Keys.None), () => "Mastery buttons keybind", () => "When the keybind is pressed, the mastery buttons will be shown. If this is unset, the buttons will be always shown");
             settingShowWindowContainerKeybind.Value.Enabled = true;
             settingShowWindowContainerKeybind.Value.Activated += ShowWindowContainerKeybindOnActivated;
+
+            settingFishingKeybind = settings.DefineSetting("Fishing keybind", new KeyBinding(Keys.None), () => "Fishing keybind", () => "When the keybind is pressed, fishing will be toggled.");
+            settingFishingKeybind.Value.Enabled = true;
+
+            settingSkiffKeybind = settings.DefineSetting("Skiff keybind", new KeyBinding(Keys.None), () => "Skiff keybind", () => "When the keybind is pressed, the skiff will be activated.");
+            settingSkiffKeybind.Value.Enabled = true;
+
+            settingWaypointKeybind = settings.DefineSetting("Waypoint keybind", new KeyBinding(Keys.None), () => "Waypoint keybind", () => "When the keybind is pressed, the waypoint will be activated.");
+            settingWaypointKeybind.Value.Enabled = true;
         }
 
         private void ShowWindowContainerKeybindOnActivated(object sender, EventArgs e)
         {
+            // show window container when keybind is triggered
             windowContainer.Show();
         }
 
@@ -90,39 +106,62 @@ namespace mastery
             imageFishing.Click += ImageFishingOnClick;
         }
 
-        private async void ImageSkiffOnClick(object sender, MouseEventArgs e)
+        private void ImageSkiffOnClick(object sender, MouseEventArgs e)
         {
-            Blish_HUD.Controls.Intern.Keyboard.Press(Blish_HUD.Controls.Extern.VirtualKeyShort.CONTROL);
-            Blish_HUD.Controls.Intern.Keyboard.Press(Blish_HUD.Controls.Extern.VirtualKeyShort.F11);
-            await Task.Delay(50);
-            Blish_HUD.Controls.Intern.Keyboard.Release(Blish_HUD.Controls.Extern.VirtualKeyShort.CONTROL);
-            Blish_HUD.Controls.Intern.Keyboard.Release(Blish_HUD.Controls.Extern.VirtualKeyShort.F11);
+            PressKey(settingSkiffKeybind);
         }
 
-        private async void ImageWaypointOnClick(object sender, MouseEventArgs e)
+        private void ImageWaypointOnClick(object sender, MouseEventArgs e)
         {
-            Blish_HUD.Controls.Intern.Keyboard.Press(Blish_HUD.Controls.Extern.VirtualKeyShort.CONTROL);
-            Blish_HUD.Controls.Intern.Keyboard.Press(Blish_HUD.Controls.Extern.VirtualKeyShort.F9);
-            await Task.Delay(50);
-            Blish_HUD.Controls.Intern.Keyboard.Release(Blish_HUD.Controls.Extern.VirtualKeyShort.CONTROL);
-            Blish_HUD.Controls.Intern.Keyboard.Release(Blish_HUD.Controls.Extern.VirtualKeyShort.F9);
+            PressKey(settingWaypointKeybind);
         }
 
-        private async void ImageFishingOnClick(object sender, MouseEventArgs e)
+        private void ImageFishingOnClick(object sender, MouseEventArgs e)
         {
-            Blish_HUD.Controls.Intern.Keyboard.Press(Blish_HUD.Controls.Extern.VirtualKeyShort.CONTROL);
-            Blish_HUD.Controls.Intern.Keyboard.Press(Blish_HUD.Controls.Extern.VirtualKeyShort.F10);
+            PressKey(settingFishingKeybind);
+        }
+
+        // press the settings keys, wait, release the settings keys
+        private async void PressKey(SettingEntry<KeyBinding> settingKeybind)
+        {
+            Tuple<ModifierKeys, VirtualKeyShort>[] modifierKeys = {
+                new Tuple<ModifierKeys, VirtualKeyShort>(ModifierKeys.Alt, VirtualKeyShort.MENU), 
+                new Tuple<ModifierKeys, VirtualKeyShort>(ModifierKeys.Ctrl, VirtualKeyShort.CONTROL), 
+                new Tuple<ModifierKeys, VirtualKeyShort>(ModifierKeys.Shift, VirtualKeyShort.SHIFT)
+            };
+
+            foreach(Tuple<ModifierKeys, VirtualKeyShort> modifierKey in modifierKeys)
+            {
+                if (settingKeybind.Value.ModifierKeys.HasFlag(modifierKey.Item1))
+                {
+                    Blish_HUD.Controls.Intern.Keyboard.Press(modifierKey.Item2, false);
+                }
+            }
+
+            Blish_HUD.Controls.Intern.Keyboard.Press((VirtualKeyShort)settingKeybind.Value.PrimaryKey, false);
+
             await Task.Delay(50);
-            Blish_HUD.Controls.Intern.Keyboard.Release(Blish_HUD.Controls.Extern.VirtualKeyShort.CONTROL);
-            Blish_HUD.Controls.Intern.Keyboard.Release(Blish_HUD.Controls.Extern.VirtualKeyShort.F10);
+
+            foreach (Tuple<ModifierKeys, VirtualKeyShort> modifierKey in modifierKeys)
+            {
+                if (settingKeybind.Value.ModifierKeys.HasFlag(modifierKey.Item1))
+                {
+                    Blish_HUD.Controls.Intern.Keyboard.Release(modifierKey.Item2, false);
+                }
+            }
+
+            Blish_HUD.Controls.Intern.Keyboard.Release((VirtualKeyShort)settingKeybind.Value.PrimaryKey, false);
         }
 
         protected override void Update(GameTime gameTime)
         {
+            // hide the window container if the keybind is not being pressed and if there is a keybind set for it
             if (windowContainer.Visible && !settingShowWindowContainerKeybind.Value.IsTriggering && settingShowWindowContainerKeybind.Value.PrimaryKey != Keys.None)
             {
                 windowContainer.Hide();
-            } else if(!windowContainer.Visible && settingShowWindowContainerKeybind.Value.PrimaryKey == Keys.None)
+            }
+            // show the window container if there is no keybind set for it
+            else if (!windowContainer.Visible && settingShowWindowContainerKeybind.Value.PrimaryKey == Keys.None)
             {
                 windowContainer.Show();
             }
